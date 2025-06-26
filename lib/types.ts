@@ -84,6 +84,7 @@ export interface PaymentInfo {
 }
 
 export interface LoginResponse {
+  fullName: any;
   user: User;
 }
 
