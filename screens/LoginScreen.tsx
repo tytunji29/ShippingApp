@@ -12,29 +12,63 @@ import Toast from 'react-native-toast-message';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
 
 const LoginScreen = () => {
+  const [selectedType, setSelectedType] = useState<"individual" | "company">(
+    "individual"
+  );
   const { loginUser,state } = useAppContext();
   const navigation = useNavigation<NavigationProp>();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    if (!email || !password) return alert("Please fill all fields");
+//     if (!email || !password) return alert("Please fill all fields");
 
-    const result = await loginUser({ email, password });
-    if (result) {
+//     const result = await loginUser({ email, password });
+//     if (result) {
     
-      Toast.show({
-  type: 'success',
-  text1: `Welcome, ${result.fullName}`,
-});
-      navigation.replace("MainApp"); // Navigate to the main app screen
-    }
-  };
+//       Toast.show({
+//   type: 'success',
+//   text1: `Welcome, ${result.fullName}`,
+// });
+//       navigation.replace("MainApp"); // Navigate to the main app screen
+//     }
+//     else {
+//       Toast.show({
+//         type: 'error',
+//         text1: 'Login failed',
+//         text2: state.error || 'Please check your credentials and try again.',
+//       });
+//     }
+//   };
+// 2. Update your handleLogin function to use the new response format
+const handleLogin = async () => { 
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
 
+  const result = await loginUser({ email, password });
+  
+  // Alert the API message regardless of status
+  alert(result.message);
+  
+  if (result.success) {
+    Toast.show({
+      type: 'success',
+      text1: `Welcome, ${result.data.fullName}`,
+    });
+    navigation.replace("MainApp");
+  } else {
+    Toast.show({
+      type: 'error',
+      text1: 'Login failed',
+      text2: result.message,
+    });
+  }
+};
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
+       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: "#f9fafb" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
@@ -42,6 +76,39 @@ const LoginScreen = () => {
           <View style={styles.card}>
             <Text style={styles.title}>Log In</Text>
 
+            {/* Toggle Buttons */}
+            <View style={styles.toggleRow}>
+              <TouchableOpacity
+                style={[
+                  styles.toggleBox,
+                  selectedType === "individual" && styles.toggleBoxActive,
+                ]}
+                onPress={() => setSelectedType("individual")}
+              >
+                <MaterialCommunityIcons name="account" size={24} color="#000" />
+                <Text style={styles.toggleTitle}>Individual</Text>
+                <Text style={styles.toggleDesc}>
+                  To sign up as an Individual
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.toggleBox,
+                  selectedType === "company" && styles.toggleBoxActive,
+                ]}
+                onPress={() => setSelectedType("company")}
+              >
+                <MaterialCommunityIcons
+                  name="office-building"
+                  size={24}
+                  color="#000"
+                />
+                <Text style={styles.toggleTitle}>Courier Company</Text>
+                <Text style={styles.toggleDesc}>
+                  To sign up as a transport company
+                </Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputContainer}>
@@ -70,10 +137,28 @@ const LoginScreen = () => {
                 />
               </View>
             </View>
-
+    {/* Google */}
+    
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
               <Text style={styles.loginText}>Login</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.googleButton}>
+              <FontAwesome name="google" size={20} color="#000" />
+              <Text style={styles.googleText}>Log in with Google</Text>
+            </TouchableOpacity>
+
+            {/* Signup Link */}
+            <View style={{ marginTop: 25 }}>
+              <Text style={styles.bottomText}>
+                Don’t have an account?{" "}
+                <Text
+                  style={styles.link}
+                  onPress={() => navigation.navigate("Signup")}
+                >
+                  Sign Up
+                </Text>
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -86,6 +171,14 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20,
+  }, bottomText: {
+    textAlign: "center",
+    fontSize: 13,
+    color: "#333",
+  },
+  link: {
+    color: "#0b1b36",
+    textDecorationLine: "underline",
   },
   card: {
     width: "100%", backgroundColor: "#fff", borderRadius: 12,
@@ -93,6 +186,50 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28, fontWeight: "700", textAlign: "center", marginBottom: 25,
+  },
+    googleButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    marginTop: 15,
+  },
+  googleText: {
+    fontSize: 14,
+    marginLeft: 10,
+    color: "#000",
+  },
+  toggleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 30,
+  },
+  toggleBox: {
+    width: "48%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+  },
+  toggleBoxActive: {
+    borderColor: "#0b1b36",
+    backgroundColor: "#f0f4ff",
+  },
+  toggleTitle: {
+    fontWeight: "600",
+    fontSize: 16,
+    marginTop: 10,
+  },
+  toggleDesc: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 4,
   },
   inputWrapper: { marginBottom: 20 },
   label: { fontWeight: "600", marginBottom: 8, fontSize: 13 },

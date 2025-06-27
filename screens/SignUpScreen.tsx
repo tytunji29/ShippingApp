@@ -1,106 +1,255 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,Text,TouchableOpacity,StyleSheet,ScrollView,KeyboardAvoidingView,Platform,Image,Alert,
 } from "react-native";
-import { useAppContext } from "../context/AppContext";
-import { MaterialCommunityIcons, FontAwesome } from "@expo/vector-icons";
+import globalStyles from "../styles/global";
+
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import InputField from "../components/InputField";
+import { APIURL } from "../context/Actions";
+import DatePicker from "react-native-date-picker";
+import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from '../types/navigation';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
+import { useAppContext } from "../context/AppContext";
+import Loader from "../components/Loader";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import { Picker } from "@react-native-picker/picker";
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Signup">;
 const SignupScreen = () => {
-  const { signupUser, signupCompanyUser } = useAppContext();
+  const { signupUser } = useAppContext();
 
-const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<NavigationProp>();
   const [selectedType, setSelectedType] = useState<"individual" | "company">(
     "individual"
   );
-  const [form, setForm] = useState({
+
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [regionStates, setRegionStates] = useState<any[]>([]);
+  const [regionLgas, setRegionLgas] = useState<any[]>([]);
+  const [vehicleTypeId, setVehicleTypes] = useState<any[]>([]);
+
+  const [form, setForm] = useState<any>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     gender: "",
     password: "",
+    dateOfBirth: "",
+    address: "",
   });
 
-  const handleChange = (key: string, value: string) => {
-    setForm({ ...form, [key]: value });
+  const [formCompany, setFormCompany] = useState<any>({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    gender: "",
+    address: "",
+    regionState: "",
+    regionLgaId: "",
+    dateOfBirth: "",
+    vehicleTypeId: "",
+    plateNumber: "",
+    accountName: "",
+    accountNumber: "",
+    bankName: "",
+    nationalIdentityNumber: "",
+    driverLicenseImage: "",
+    photo: null,
+  });
+
+  const fetchStates = async () => {
+    const res = await fetch(`${APIURL}/GeneralSetup/get-all-region-state`);
+    const data = await res.json();
+    setRegionStates(data.data);
   };
 
-  const handleSignup = async () => {
-    const { firstName, lastName, email, phone, gender, password } = form;
-    if (!firstName || !lastName || !email || !phone || !gender || !password) {
-      return alert("All fields are required");
+  const fetchLgas = async (stateId: string) => {
+    const res = await fetch(
+      `${APIURL}/GeneralSetup/get-all-region-lga/${stateId}`
+    );
+    const data = await res.json();
+    setRegionLgas(data.data);
+  };
+
+  const fetchVehicleTypes = async () => {
+    const res = await fetch(`${APIURL}/GeneralSetup/get-all-vehicletypes`);
+    const data = await res.json();
+    setVehicleTypes(data.data);
+  };
+
+  useEffect(() => {
+    fetchStates();
+    fetchVehicleTypes();
+  }, []);
+
+  useEffect(() => {
+    if (formCompany.regionState) {
+      fetchLgas(formCompany.regionState);
     }
+  }, [formCompany.regionState]);
 
-    const credentials = {
-      firstName,
-      lastName,
-      email,
-      phoneNumber: phone,
-      gender,
-      password,
-    };
-    // const companyCredentials = {
-    //   firstName,
-    //   lastName,
-    //   phoneNumber: phone,
-    //   email,
-    //   username,
-    //   password,
-    //   gender,
-    //   typeOfService,
-    //   region,
-    //   noOfVeicles,
-    //   loadingNo,
-    //   rate,
-    //   availability,
-    // };
+  const pickImage = async (field: string) => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
 
-    if (selectedType === "individual") {
-      await signupUser(credentials);
-    } else {
-      //await signupCompanyUser(companyCredentials);
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const name = uri.split("/").pop() || "upload.jpg";
+      const type = "image/jpeg";
+      const file = { uri, name, type };
+
+      setFormCompany({ ...formCompany, [field]: file });
     }
   };
 
+  const today = new Date();
+  const eighteenYearsAgo = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const handleIndividualSignup = async () => {
+    const { firstName, lastName, email, phone, gender, password,address, dateOfBirth } =
+      form;
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !phone ||
+      !gender ||
+      !password ||
+      !address ||
+      !dateOfBirth
+    ) {
+      Alert.alert("Error", "All fields are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result =await signupUser({firstName,lastName,email,phoneNumber: phone,gender,password,dateOfBirth,address,
+      });
+      if (!result.success) {
+        Alert.alert("Error", result.message || "Signup failed. Please try again.");
+        return;
+      }
+      Alert.alert("Success", "Signup Successful", [
+        { text: "OK", onPress: () => navigation.navigate("Login") },
+      ]);
+    } catch (error) {
+      Alert.alert("Error", "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompanySignup = async () => {
+    // ✅ Basic validation
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "phoneNumber",
+      "gender",
+      "password",
+    ];
+    for (const field of requiredFields) {
+      if (!formCompany[field]) {
+        Alert.alert("Missing Field", `Please fill in your ${field}.`);
+        return;
+      }
+    }
+
+    setLoading(true);
+    const formData = new FormData();
+    Object.entries(formCompany).forEach(([key, value]: [string, any]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+
+        // Check if value is an image/file object
+        if (typeof value === "object" && "uri" in value) {
+          const localUri = value.uri;
+          const filename = localUri.split("/").pop() || "photo.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image`;
+
+          formData.append(pascalKey, {
+            uri: localUri,
+            name: filename,
+            type,
+          } as any);
+        } else {
+          formData.append(pascalKey, value);
+        }
+      }
+    });
+
+    try {
+      const response = await fetch(`${APIURL}/Auth/agent-signUp`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.status) {
+        Alert.alert("Success", "Registration submitted! Check your email.", [
+          { text: "OK", onPress: () => navigation.navigate("Login") },
+        ]);
+      } else {
+        Alert.alert(
+          "Error",
+          result.message || "Registration failed. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Company signup error:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <KeyboardAvoidingView
+      <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#fff" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0} // Added offset
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Create Account</Text>
+      <KeyboardAwareScrollView // Replaced ScrollView with KeyboardAwareScrollView
+        contentContainerStyle={[globalStyles.container, { paddingBottom: 50 }]}
+        extraScrollHeight={50}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={globalStyles.title}>Create Account</Text>
 
         {/* Toggle */}
-        <View style={styles.toggleRow}>
+        <View style={globalStyles.toggleRow}>
           <TouchableOpacity
             style={[
-              styles.toggleBox,
-              selectedType === "individual" && styles.toggleBoxActive,
+              globalStyles.toggleBox,
+              selectedType === "individual" && globalStyles.toggleBoxActive,
             ]}
             onPress={() => setSelectedType("individual")}
           >
             <MaterialCommunityIcons name="account" size={24} color="#000" />
-            <Text style={styles.toggleTitle}>Individual</Text>
-            <Text style={styles.toggleDesc}>Signup as an individual</Text>
+            <Text style={globalStyles.toggleTitle}>Individual</Text>
+            <Text style={globalStyles.toggleDesc}>Signup as an individual</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
-              styles.toggleBox,
-              selectedType === "company" && styles.toggleBoxActive,
+              globalStyles.toggleBox,
+              selectedType === "company" && globalStyles.toggleBoxActive,
             ]}
             onPress={() => setSelectedType("company")}
           >
@@ -109,185 +258,360 @@ const navigation = useNavigation<NavigationProp>();
               size={24}
               color="#000"
             />
-            <Text style={styles.toggleTitle}>Company</Text>
-            <Text style={styles.toggleDesc}>Signup as a transport company</Text>
+            <Text style={globalStyles.toggleTitle}>Company</Text>
+            <Text style={globalStyles.toggleDesc}>Signup as a transport company</Text>
           </TouchableOpacity>
         </View>
+        {/* Individual Signup */}
+        {selectedType === "individual" && (
+          <>
+            <InputField
+              label="First Name"
+              value={form.firstName}
+              onChangeText={(text) => setForm({ ...form, firstName: text })}
+              iconName={"account-outline"}
+            />
+            <InputField
+              label="Last Name"
+              value={form.lastName}
+              onChangeText={(text) => setForm({ ...form, lastName: text })}
+              iconName={"account-outline"}
+            />
+            <InputField
+              label="Home Address"
+              value={form.address}
+              onChangeText={(text) => setForm({ ...form, address: text })}
+              iconName={"map"}
+            />
+            <InputField
+              label="Email"
+              value={form.email}
+              keyboardType="email-address"
+              onChangeText={(text) => setForm({ ...form, email: text })}
+              iconName={"email-outline"}
+            />
+            <InputField
+              label="Phone"
+              value={form.phone}
+              keyboardType="phone-pad"
+              onChangeText={(text) => setForm({ ...form, phone: text })}
+              iconName={"phone"}
+            />
+            <InputField
+              label="Gender"
+              value={form.gender}
+              onChangeText={(text) => setForm({ ...form, gender: text })}
+              iconName={"head"}
+            />
+            <InputField
+              label="Date of Birth"
+              value={form.dateOfBirth}
+              onChangeText={(text) => setForm({ ...form, dateOfBirth: text })}
+              iconName={"calendar"}
+            />
+            <InputField
+              label="Password"
+              secureTextEntry
+              value={form.password}
+              onChangeText={(text) => setForm({ ...form, password: text })}
+              iconName={"lock-outline"}
+            />
+            <TouchableOpacity
+              style={globalStyles.button}
+              onPress={handleIndividualSignup}
+            >
+              {loading ? (
+                <Loader />
+              ) : (
+                <Text style={globalStyles.buttonText}>Sign Up</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
 
-        {/* First Name */}
-        <InputField
-          label="First Name"
-          iconName="account-outline"
-          value={form.firstName}
-          onChangeText={(text) => handleChange("firstName", text)}
-        />
+        {/* Company Signup */}
+        {selectedType === "company" && (
+          <>
+            <Text style={globalStyles.stepTitle}>Step {step} of 4</Text>
+            {step === 1 && (
+              <>
+                <InputField
+                  label="First Name"
+                  value={formCompany.firstName}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, firstName: text })
+                  }
+                  iconName={"account-outline"}
+                />
+                <InputField
+                  label="Last Name"
+                  value={formCompany.lastName}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, lastName: text })
+                  }
+                  iconName={"account-outline"}
+                />
+                <InputField
+                  label="Phone Number"
+                  value={formCompany.phoneNumber}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, phoneNumber: text })
+                  }
+                  iconName={"phone"}
+                />
+                <InputField
+                  label="Email"
+                  value={formCompany.email}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, email: text })
+                  }
+                  iconName={"email-outline"}
+                />
+                <InputField
+                  label="Password"
+                  secureTextEntry
+                  value={formCompany.password}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, password: text })
+                  }
+                  iconName={"lock-outline"}
+                />
+                <TouchableOpacity
+                  style={globalStyles.button}
+                  onPress={() => setStep(2)}
+                >
+                  <Text style={globalStyles.buttonText}>Next</Text>
+                </TouchableOpacity>
+              </>
+            )}
 
-        {/* Last Name */}
-        <InputField
-          label="Last Name"
-          iconName="account-outline"
-          value={form.lastName}
-          onChangeText={(text) => handleChange("lastName", text)}
-        />
+            {step === 2 && (
+              <>
+                <InputField
+                  label="Address"
+                  value={formCompany.address}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, address: text })
+                  }
+                  iconName={"home"}
+                />
+                <InputField
+                  label="Gender"
+                  value={formCompany.gender}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, gender: text })
+                  }
+                  iconName={"head"}
+                />
+                {/* <InputField label="State" value={formCompany.regionState} onChangeText={(text) => setFormCompany({ ...formCompany, regionState: text })} iconName={"map-marker"} />
+                <InputField label="LGA" value={formCompany.regionLgaId} onChangeText={(text) => setFormCompany({ ...formCompany, regionLgaId: text })} iconName={"map-marker"} /> */}
+                <Text style={globalStyles.label}>State</Text>
+                <View style={globalStyles.pickerContainer}>
+                  <Picker
+                    selectedValue={formCompany.regionState}
+                    onValueChange={(itemValue) =>
+                      setFormCompany({ ...formCompany, regionState: itemValue })
+                    }
+                  >
+                    <Picker.Item label="Select State" value="" />
+                    {regionStates.map((state) => (
+                      <Picker.Item
+                        key={state.id}
+                        label={state.name}
+                        value={state.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
 
-        {/* Email */}
-        <InputField
-          label="Email"
-          iconName="email-outline"
-          keyboardType="email-address"
-          value={form.email}
-          onChangeText={(text) => handleChange("email", text)}
-        />
+                <Text style={globalStyles.label}>LGA</Text>
+                <View style={globalStyles.pickerContainer}>
+                  <Picker
+                    selectedValue={formCompany.regionLgaId}
+                    onValueChange={(itemValue) =>
+                      setFormCompany({ ...formCompany, regionLgaId: itemValue })
+                    }
+                    enabled={regionLgas.length > 0}
+                  >
+                    <Picker.Item
+                      label={
+                        regionLgas.length > 0
+                          ? "Select LGA"
+                          : "Select State first"
+                      }
+                      value=""
+                    /> 
+                    {regionLgas.map((lga) => (
+                      <Picker.Item
+                        key={lga.id}
+                        label={lga.name}
+                        value={lga.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+                  <InputField
+              label="Date of Birth"
+              value={formCompany.dateOfBirth}
+              onChangeText={(text) => setFormCompany({ ...form, dateOfBirth: text })}
+              iconName={"calendar"}
+            />
+                <View style={globalStyles.row}>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={() => setStep(1)}
+                  >
+                    <Text style={globalStyles.buttonText}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={() => setStep(3)}
+                  >
+                    <Text style={globalStyles.buttonText}>Next</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
 
-        {/* Phone */}
-        <InputField
-          label="Phone Number"
-          iconName="phone"
-          keyboardType="phone-pad"
-          value={form.phone}
-          onChangeText={(text) => handleChange("phone", text)}
-        />
+            {step === 3 && (
+              <>
+                 <Text style={globalStyles.label}>Vehicle Type</Text>
+                <View style={globalStyles.pickerContainer}>
+                  <Picker
+                    selectedValue={formCompany.vehicleTypeId}
+                    onValueChange={(itemValue) =>
+                      setFormCompany({ ...formCompany, vehicleTypeId: itemValue })
+                    }
+                  >
+                    <Picker.Item label="Select Vehicle Type" value="" />
+                    {vehicleTypeId.map((state) => (
+                      <Picker.Item
+                        key={state.id}
+                        label={state.name}
+                        value={state.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+                <InputField
+                  label="Plate Number"
+                  value={formCompany.plateNumber}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, plateNumber: text })
+                  }
+                  iconName={"numeric"}
+                />
+                <InputField
+                  label="Account Name"
+                  value={formCompany.accountName}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, accountName: text })
+                  }
+                  iconName={"account-outline"}
+                />
+                <InputField
+                  label="Account Number"
+                  value={formCompany.accountNumber}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, accountNumber: text })
+                  }
+                  iconName={"numeric"}
+                />
+                <InputField
+                  label="Bank Name"
+                  value={formCompany.bankName}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, bankName: text })
+                  }
+                  iconName={"account-outline"}
+                />
+                <InputField
+                  label="National Identity Number"
+                  value={formCompany.nationalIdentityNumber}
+                  onChangeText={(text) =>
+                    setFormCompany({
+                      ...formCompany,
+                      nationalIdentityNumber: text,
+                    })
+                  }
+                  iconName={"numeric"}
+                />
+                <InputField
+                  label="Driver License Number"
+                  value={formCompany.driverLicenseImage}
+                  onChangeText={(text) =>
+                    setFormCompany({ ...formCompany, driverLicenseImage: text })
+                  }
+                  iconName={"numeric"}
+                />
+                {/* <TouchableOpacity onPress={() => pickImage("driverLicenseImage")} style={globalStyles.uploadButton}>
+                  <Text>Select Driver License Image</Text>
+                </TouchableOpacity> */}
+                {formCompany.driverLicenseImage && (
+                  <Image
+                    source={{ uri: formCompany.driverLicenseImage.uri }}
+                    style={globalStyles.imagePreview}
+                  />
+                )}
+                <TouchableOpacity
+                  onPress={() => pickImage("photo")}
+                  style={globalStyles.uploadButton}
+                >
+                  <Text>Upload Photo</Text>
+                </TouchableOpacity>
+                {formCompany.photo && (
+                  <Image
+                    source={{ uri: formCompany.photo.uri }}
+                    style={globalStyles.imagePreview}
+                  />
+                )}
+                <View style={globalStyles.row}>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={() => setStep(2)}
+                  >
+                    <Text style={globalStyles.buttonText}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={() => setStep(4)}
+                  >
+                    <Text style={globalStyles.buttonText}>Next</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
 
-        {/* Gender */}
-        <InputField
-          label="Gender"
-          iconName="gender-male-female"
-          value={form.gender}
-          onChangeText={(text) => handleChange("gender", text)}
-        />
-
-        {/* Password */}
-        <InputField
-          label="Password"
-          iconName="lock-outline"
-          secureTextEntry
-          value={form.password}
-          onChangeText={(text) => handleChange("password", text)}
-        />
-
-        {/* Sign Up */}
-        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-          <Text style={styles.signupText}>Sign Up</Text>
-        </TouchableOpacity>
-
-        {/* Google Signup */}
-        <TouchableOpacity style={styles.googleButton}>
-          <FontAwesome name="google" size={20} color="#000" />
-          <Text style={styles.googleText}>Sign up with Google</Text>
-        </TouchableOpacity>
-
-        {/* Footer */}
-        <View style={{ marginTop: 25 }}>
-          <Text style={styles.bottomText}>
-            Already have an account? <Text style={styles.link} onPress={() => navigation.navigate("Login")}>Login</Text>
-          </Text>
-        </View>
-      </ScrollView>
+            {step === 4 && (
+              <>
+                <Text>Review your details and submit.</Text>
+                <View style={globalStyles.row}>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={() => setStep(3)}
+                  >
+                    <Text style={globalStyles.buttonText}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={globalStyles.button}
+                    onPress={handleCompanySignup}
+                  >
+                    {loading ? (
+                      <Loader />
+                    ) : (
+                      <Text style={globalStyles.buttonText}>Submit</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </>
+        )}
+     
+      </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 };
-
 export default SignupScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 25,
-  },
-  toggleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 30,
-  },
-  toggleBox: {
-    width: "48%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 15,
-    alignItems: "center",
-  },
-  toggleBoxActive: {
-    borderColor: "#0b1b36",
-    backgroundColor: "#f0f4ff",
-  },
-  toggleTitle: {
-    fontWeight: "600",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  toggleDesc: {
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 4,
-  },
-  inputWrapper: {
-    marginBottom: 20,
-  },
-  label: {
-    fontWeight: "600",
-    marginBottom: 8,
-    fontSize: 13,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f8f8",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 14 : 10,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
-    color: "#000",
-  },
-  signupButton: {
-    backgroundColor: "#0b1b36",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  signupText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  googleButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 15,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginTop: 15,
-  },
-  googleText: {
-    fontSize: 14,
-    marginLeft: 10,
-    color: "#000",
-  },
-  bottomText: {
-    textAlign: "center",
-    fontSize: 13,
-    color: "#333",
-  },
-  link: {
-    color: "#0b1b36",
-    textDecorationLine: "underline",
-  },
-});
+

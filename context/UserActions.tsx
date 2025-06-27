@@ -45,33 +45,41 @@ const user = {
   loginUser: async (dispatch: any, credentials: LoginCredentials) => {
     try {
       user.setLoading(dispatch, true);
-
       const response = await axios.post(`${APIURL}/Auth/Login`, credentials);
-
-      if (!response?.data) throw new Error();
+      if (!response?.data) throw new Error("No response data");
       if (!response.data.status) {
-        const err = new Error(response.data.message);
-        (err as any).isCustom = true;
-        throw err;
+        return {
+          success: false,
+          message: response.data.message || "Login failed",
+        };
       }
 
       const data = response.data.data;
-
       dispatch({ type: ACTION_TYPES.SET_USER, payload: data });
       user.setLoading(dispatch, false);
-      showToast("success", response.data.message);
 
       await AsyncStorage.setItem("vubids_token", data.token);
       await AsyncStorage.setItem("user_Type", data.isCompany?.toString());
 
-      return data;
+      return {
+        success: true,
+        message: response.data.message,
+        data: data,
+      };
     } catch (error: any) {
       user.setLoading(dispatch, false);
+
       const msg =
         error instanceof AxiosError
-          ? error?.response?.data.message
+          ? error?.response?.data?.message || error.message
           : error?.message || "An unknown error occurred";
+
       user.setError(dispatch, msg);
+
+      return {
+        success: false,
+        message: msg,
+      };
     }
   },
 
@@ -110,18 +118,34 @@ const user = {
       user.setLoading(dispatch, true);
       const response = await axios.post(url, credentials);
 
-      if (!response?.data || !response.data.status) {
-        const err = new Error(response.data?.message || "Signup failed");
-        (err as any).isCustom = true;
-        throw err;
+      // Handle API-level errors (status: false)
+      if (!response.status) {
+        return {
+          success: false,
+          message: response.data.message || "An Error Occured",
+        };
       }
 
       const data = response.data.data;
+      return {
+        success: true,
+        message: response.data.message,
+        data: data,
+      };
+    } catch (error: any) {
       user.setLoading(dispatch, false);
-      showToast("success", response.data.message);
-      return data;
-    } catch (error) {
-      errorHandler(dispatch, error, user);
+
+      const msg =
+        error instanceof AxiosError
+          ? error?.response?.data?.message || error.message
+          : error?.message || "An unknown error occurred";
+
+      user.setError(dispatch, msg);
+
+      return {
+        success: false,
+        message: msg,
+      };
     }
   },
 

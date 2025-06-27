@@ -12,7 +12,7 @@ export interface User {
   email: string;
   IsCompany: string;
 }
-export interface quoteList{
+export interface quoteList {
   id: string;
   customer: string;
   from: string;
@@ -26,7 +26,6 @@ export interface LoginCredentials {
   password: string;
 }
 
-
 export interface SignupCredentials {
   firstName: string;
   lastName: string;
@@ -34,21 +33,22 @@ export interface SignupCredentials {
   phoneNumber: string;
   password: string;
   gender: string;
+  address: string;
+  dateOfBirth: string;
 }
 export interface CorporateCredentials {
   firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    email: string;
-    username: string;
-    password: string;
-    gender: string;
-    typeOfService: string;
-    region: string;
-    noOfVeicles: string;
-    loadingNo: string;
-    rate: string;
-    availability: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  password: string;
+  gender: string;
+  typeOfService: string;
+  region: string;
+  noOfVeicles: string;
+  loadingNo: string;
+  rate: string;
+  availability: string;
 }
 
 export type RootStackParamList = {
@@ -86,6 +86,11 @@ export interface PaymentInfo {
 export interface LoginResponse {
   fullName: any;
   user: User;
+}
+export interface LoginResponseII {
+  message: string;
+  success: boolean;
+  data?: any;
 }
 
 export interface AppState {
@@ -138,15 +143,16 @@ export type AppAction =
 
 export interface AppContextType {
   state: AppState;
-  loginUser: (credentials: LoginCredentials) => Promise<LoginResponse>;
+  loginUser: (credentials: LoginCredentials) => Promise<LoginResponseII>;
   authUser: (token: string) => any;
   logoutUser: () => void;
   setError: (dispatch: any, error: string | null) => void;
-  signupUser: (credentials: SignupCredentials) => Promise<string>;
-  signupCompanyUser: (credentials: CorporateCredentials) => Promise<string>;
+  signupUser: (credentials: SignupCredentials) => Promise<LoginResponseII>;
   updateProfile: (credentials: ProfileCredentials) => Promise<string>;
   addPayment: (credentials: PaymentInfo) => Promise<string>;
-  createShipment: (details: ShipmentDetails) => Promise<{ success: boolean; message: string }>;
+  createShipment: (
+    details: ShipmentDetails
+  ) => Promise<{ success: boolean; message: string }>;
   allShipments: () => Promise<[{}]>;
   itemCategories: () => Promise<[{}]>;
   fetchQuotes: () => Promise<quoteList[]>;

@@ -60,7 +60,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     logoutUser,
     setError: (error) => user.setError(dispatch, error),
     signupUser: (credentials) => user.signupUser(dispatch, credentials, 1),
-    signupCompanyUser: (credentials) => user.signupUser(dispatch, credentials, 2),
+    
     updateProfile: (credentials) => user.updateProfile(dispatch, credentials),
     addPayment: (credentials) => user.addPayment(dispatch, credentials),
     createShipment: (details) => shipments.create(dispatch, details),
