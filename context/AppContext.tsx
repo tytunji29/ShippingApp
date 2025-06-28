@@ -5,6 +5,7 @@ import React, {
   useReducer,
   useEffect,
   ReactNode,
+  useState,
 } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, ACTION_TYPES, AppContextType } from "../lib/types"; // Adjust import path
@@ -55,6 +56,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const contextValue: AppContextType = {
     state,
+    
     loginUser: (credentials) => user.loginUser(dispatch, credentials),
     authUser: (token) => user.authUser(dispatch, token),
     logoutUser,

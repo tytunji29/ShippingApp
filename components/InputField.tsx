@@ -13,11 +13,21 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 interface InputFieldProps extends TextInputProps {
   label: string;
   iconName: keyof typeof MaterialCommunityIcons.glyphMap;
+  value: string;
+  onChangeText: (text: string) => void;
+  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
+  secureTextEntry?: boolean;
+  rightIcon?: React.ReactNode; 
 }
 
 const InputField: React.FC<InputFieldProps> = ({
   label,
+  value,
+  onChangeText,
   iconName,
+  keyboardType = "default",
+  secureTextEntry = false,
+  rightIcon,
   ...rest
 }) => {
   return (
@@ -28,8 +38,13 @@ const InputField: React.FC<InputFieldProps> = ({
         <TextInput
           style={styles.input}
           placeholderTextColor="#888"
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
           {...rest}
         />
+        {rightIcon}
       </View>
     </View>
   );

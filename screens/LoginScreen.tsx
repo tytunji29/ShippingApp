@@ -15,6 +15,7 @@ const LoginScreen = () => {
   const [selectedType, setSelectedType] = useState<"individual" | "company">(
     "individual"
   );
+  
   const { loginUser,state } = useAppContext();
   const navigation = useNavigation<NavigationProp>();
 
@@ -117,6 +118,8 @@ const handleLogin = async () => {
                 />
               </View>
             </View>
+
+            
     {/* Google */}
     
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>

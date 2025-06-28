@@ -10,6 +10,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import CreateShipmentScreen from './screens/CreateShipmentScreen';
 import { AppProvider } from './context/AppContext';
 import { RootStackParamList } from './types/navigation';
+import ShipmentsTabs from './screens/ShipmentsTabs';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -31,15 +32,14 @@ const DrawerScreens = () => (
       }}
     />
     <Drawer.Screen
-      name="CreateShipment"
-      component={CreateShipmentScreen}
+      name="Shipments"
+      component={ShipmentsTabs}
       options={{
         drawerIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="select" size={size} color={color} />
+          <MaterialCommunityIcons name="package-variant-closed" size={size} color={color} />
         ),
       }}
     />
-    {/* Add more drawer items if needed */}
   </Drawer.Navigator>
 );
 

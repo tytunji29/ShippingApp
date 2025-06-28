@@ -4,4 +4,6 @@ export type RootStackParamList = {
   Dashboard: undefined;
   MainApp: undefined;
    CreateShipment: undefined;
+   MyShipments: undefined;
+   AvailableShipmentScreen: undefined;
 };

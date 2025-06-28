@@ -19,7 +19,7 @@ import { useAppContext } from "../context/AppContext";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from "expo-file-system";
 
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -34,7 +34,8 @@ export default function CreateShipment() {
   const { itemCategories, itemTypes } = useAppContext();
   const [iCategories, setICategories] = useState<any[]>([]);
   const [iTypes, setITypes] = useState<any[]>([]);
-
+  const [pickupDateObj, setPickupDateObj] = useState(new Date());
+  const [deliveryDateObj, setDeliveryDateObj] = useState(new Date());
   const { createShipment, state } = useAppContext();
   const navigation = useNavigation<NavigationProp>();
   const [formData, setFormData] = useState({
@@ -82,20 +83,68 @@ export default function CreateShipment() {
       });
     }
   };
+  const handlePickupDateChange = (event: any, date?: Date) => {
+    setShowPickupDatePicker(false);
+    if (date) {
+      setPickupDateObj(date);
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPickupRequest: {
+          ...prev.deliveryPickupRequest,
+          pickupDate: date.toISOString(),
+        },
+      }));
 
- const convertToBase64 = async (uri) => {
-  try {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    console.log(base64);
-    return base64;
-  } catch (error) {
-    console.error('Error converting to base64:', error);
-    return null;
-  }
-};
-  
+      // Reset delivery date if it's before new pickup date
+      if (date > deliveryDateObj) {
+        setDeliveryDateObj(date);
+        setFormData((prev) => ({
+          ...prev,
+          deliveryPickupRequest: {
+            ...prev.deliveryPickupRequest,
+            deliveryDate: date.toISOString(),
+          },
+        }));
+      }
+    }
+  };
+
+  const handleDeliveryDateChange = (event: any, date?: Date) => {
+    setShowDeliveryDatePicker(false);
+    if (date) {
+      // Prevent dates before pickup
+      if (date < pickupDateObj) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid Date",
+          text2: "Delivery date must be after pickup date",
+        });
+        return;
+      }
+      setDeliveryDateObj(date);
+      setFormData((prev) => ({
+        ...prev,
+        deliveryPickupRequest: {
+          ...prev.deliveryPickupRequest,
+          deliveryDate: date.toISOString(),
+        },
+      }));
+    }
+  };
+
+  const convertToBase64 = async (uri) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      console.log(base64);
+      return base64;
+    } catch (error) {
+      console.error("Error converting to base64:", error);
+      return null;
+    }
+  };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -201,7 +250,10 @@ export default function CreateShipment() {
             onValueChange={(itemValue) =>
               setFormData((prev) => ({
                 ...prev,
-                itemsRequest: { ...prev.itemsRequest, regionLgaId: itemValue.toString() },
+                itemsRequest: {
+                  ...prev.itemsRequest,
+                  regionLgaId: itemValue.toString(),
+                },
               }))
             }
           >
@@ -389,30 +441,16 @@ export default function CreateShipment() {
             </Text>
             <Ionicons name="calendar" size={20} color="#333" />
           </TouchableOpacity>
+
           {showPickupDatePicker && (
             <DateTimePicker
-              value={
-                formData.deliveryPickupRequest.pickupDate
-                  ? new Date(formData.deliveryPickupRequest.pickupDate)
-                  : new Date()
-              }
+              value={pickupDateObj}
               mode="date"
               display="default"
-              onChange={(event, date) => {
-                setShowPickupDatePicker(false);
-                if (date) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    deliveryPickupRequest: {
-                      ...prev.deliveryPickupRequest,
-                      pickupDate: date.toISOString(),
-                    },
-                  }));
-                }
-              }}
+              minimumDate={new Date()} // Prevent past dates
+              onChange={handlePickupDateChange}
             />
           )}
-
           {/* Delivery Date */}
           <Text style={globalStyles.label}>Delivery Date</Text>
           <TouchableOpacity
@@ -435,27 +473,14 @@ export default function CreateShipment() {
             </Text>
             <Ionicons name="calendar" size={20} color="#333" />
           </TouchableOpacity>
+
           {showDeliveryDatePicker && (
             <DateTimePicker
-              value={
-                formData.deliveryPickupRequest.deliveryDate
-                  ? new Date(formData.deliveryPickupRequest.deliveryDate)
-                  : new Date()
-              }
+              value={deliveryDateObj}
               mode="date"
               display="default"
-              onChange={(event, date) => {
-                setShowDeliveryDatePicker(false);
-                if (date) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    deliveryPickupRequest: {
-                      ...prev.deliveryPickupRequest,
-                      deliveryDate: date.toISOString(),
-                    },
-                  }));
-                }
-              }}
+              minimumDate={pickupDateObj} // Must be after pickup
+              onChange={handleDeliveryDateChange}
             />
           )}
           <TouchableOpacity

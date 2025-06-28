@@ -110,6 +110,9 @@ const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === "ios" ? 14 : 10,
   },
+   rightIcon: {
+    marginLeft: 10,
+  },
  input: {
   borderWidth: 1,
   borderColor: "#ccc",

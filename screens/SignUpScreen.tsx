@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,Text,TouchableOpacity,StyleSheet,ScrollView,KeyboardAvoidingView,Platform,Image,Alert,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Alert,
 } from "react-native";
 import globalStyles from "../styles/global";
 
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import InputField from "../components/InputField";
 import { APIURL } from "../context/Actions";
-import DatePicker from "react-native-date-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { useAppContext } from "../context/AppContext";
 import Loader from "../components/Loader";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { Picker } from "@react-native-picker/picker";
@@ -31,6 +39,7 @@ const SignupScreen = () => {
   const [regionLgas, setRegionLgas] = useState<any[]>([]);
   const [vehicleTypeId, setVehicleTypes] = useState<any[]>([]);
 
+  const [showDateOfBirthPicker, setShowDateOfBirthPicker] = useState(false);
   const [form, setForm] = useState<any>({
     firstName: "",
     lastName: "",
@@ -93,6 +102,8 @@ const SignupScreen = () => {
       fetchLgas(formCompany.regionState);
     }
   }, [formCompany.regionState]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCompanyPassword, setShowCompanyPassword] = useState(false);
 
   const pickImage = async (field: string) => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -117,10 +128,21 @@ const SignupScreen = () => {
     today.getMonth(),
     today.getDate()
   );
+  const [activeDateField, setActiveDateField] = useState<
+    "individual" | "company" | null
+  >(null);
 
   const handleIndividualSignup = async () => {
-    const { firstName, lastName, email, phone, gender, password,address, dateOfBirth } =
-      form;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      gender,
+      password,
+      address,
+      dateOfBirth,
+    } = form;
     if (
       !firstName ||
       !lastName ||
@@ -136,10 +158,21 @@ const SignupScreen = () => {
     }
     setLoading(true);
     try {
-      const result =await signupUser({firstName,lastName,email,phoneNumber: phone,gender,password,dateOfBirth,address,
+      const result = await signupUser({
+        firstName,
+        lastName,
+        email,
+        phoneNumber: phone,
+        gender,
+        password,
+        dateOfBirth,
+        address,
       });
       if (!result.success) {
-        Alert.alert("Error", result.message || "Signup failed. Please try again.");
+        Alert.alert(
+          "Error",
+          result.message || "Signup failed. Please try again."
+        );
         return;
       }
       Alert.alert("Success", "Signup Successful", [
@@ -152,6 +185,17 @@ const SignupScreen = () => {
     }
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDateOfBirthPicker(false);
+    if (selectedDate) {
+      const isoDate = selectedDate.toISOString();
+      if (activeDateField === "individual") {
+        setForm((prev: any) => ({ ...prev, dateOfBirth: isoDate }));
+      } else if (activeDateField === "company") {
+        setFormCompany((prev: any) => ({ ...prev, dateOfBirth: isoDate }));
+      }
+    }
+  };
   const handleCompanySignup = async () => {
     // ✅ Basic validation
     const requiredFields = [
@@ -219,7 +263,7 @@ const SignupScreen = () => {
     }
   };
   return (
-      <KeyboardAvoidingView
+    <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#fff" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0} // Added offset
@@ -259,7 +303,9 @@ const SignupScreen = () => {
               color="#000"
             />
             <Text style={globalStyles.toggleTitle}>Company</Text>
-            <Text style={globalStyles.toggleDesc}>Signup as a transport company</Text>
+            <Text style={globalStyles.toggleDesc}>
+              Signup as a transport company
+            </Text>
           </TouchableOpacity>
         </View>
         {/* Individual Signup */}
@@ -303,18 +349,54 @@ const SignupScreen = () => {
               onChangeText={(text) => setForm({ ...form, gender: text })}
               iconName={"head"}
             />
-            <InputField
+            {/* <InputField
               label="Date of Birth"
               value={form.dateOfBirth}
               onChangeText={(text) => setForm({ ...form, dateOfBirth: text })}
               iconName={"calendar"}
-            />
+            /> */}
+
+            {/* Pickup Date */}
+            <Text style={globalStyles.label}>Date of Birth</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setActiveDateField("individual");
+                setShowDateOfBirthPicker(true);
+              }}
+              style={[
+                globalStyles.input,
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
+              <Text>
+                {form.dateOfBirth
+                  ? new Date(form.dateOfBirth).toDateString()
+                  : "Select date of birth"}
+              </Text>
+              <Ionicons name="calendar" size={20} color="#333" />
+            </TouchableOpacity>
+
             <InputField
               label="Password"
-              secureTextEntry
+              secureTextEntry={!showPassword}
               value={form.password}
               onChangeText={(text) => setForm({ ...form, password: text })}
-              iconName={"lock-outline"}
+              iconName="lock-outline"
+              rightIcon={
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#333"
+                  />
+                </TouchableOpacity>
+              }
             />
             <TouchableOpacity
               style={globalStyles.button}
@@ -367,15 +449,25 @@ const SignupScreen = () => {
                   }
                   iconName={"email-outline"}
                 />
-                <InputField
-                  label="Password"
-                  secureTextEntry
-                  value={formCompany.password}
-                  onChangeText={(text) =>
-                    setFormCompany({ ...formCompany, password: text })
-                  }
-                  iconName={"lock-outline"}
-                />
+              
+                 <InputField
+              label="Password"
+              secureTextEntry={!showCompanyPassword}
+              value={formCompany.password}
+              onChangeText={(text) => setFormCompany({ ...formCompany, password: text })}
+              iconName="lock-outline"
+              rightIcon={
+                <TouchableOpacity
+                  onPress={() => setShowCompanyPassword(!showCompanyPassword)}
+                >
+                  <Ionicons
+                    name={showCompanyPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#333"
+                  />
+                </TouchableOpacity>
+              }
+            />
                 <TouchableOpacity
                   style={globalStyles.button}
                   onPress={() => setStep(2)}
@@ -440,7 +532,7 @@ const SignupScreen = () => {
                           : "Select State first"
                       }
                       value=""
-                    /> 
+                    />
                     {regionLgas.map((lga) => (
                       <Picker.Item
                         key={lga.id}
@@ -450,12 +542,29 @@ const SignupScreen = () => {
                     ))}
                   </Picker>
                 </View>
-                  <InputField
-              label="Date of Birth"
-              value={formCompany.dateOfBirth}
-              onChangeText={(text) => setFormCompany({ ...form, dateOfBirth: text })}
-              iconName={"calendar"}
-            />
+                <Text style={globalStyles.label}>Date of Birth</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setActiveDateField("company");
+                    setShowDateOfBirthPicker(true);
+                  }}
+                  style={[
+                    globalStyles.input,
+                    {
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    },
+                  ]}
+                >
+                  <Text>
+                    {formCompany.dateOfBirth
+                      ? new Date(formCompany.dateOfBirth).toDateString()
+                      : "Select date of birth"}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#333" />
+                </TouchableOpacity>
+
                 <View style={globalStyles.row}>
                   <TouchableOpacity
                     style={globalStyles.button}
@@ -475,12 +584,15 @@ const SignupScreen = () => {
 
             {step === 3 && (
               <>
-                 <Text style={globalStyles.label}>Vehicle Type</Text>
+                <Text style={globalStyles.label}>Vehicle Type</Text>
                 <View style={globalStyles.pickerContainer}>
                   <Picker
                     selectedValue={formCompany.vehicleTypeId}
                     onValueChange={(itemValue) =>
-                      setFormCompany({ ...formCompany, vehicleTypeId: itemValue })
+                      setFormCompany({
+                        ...formCompany,
+                        vehicleTypeId: itemValue,
+                      })
                     }
                   >
                     <Picker.Item label="Select Vehicle Type" value="" />
@@ -607,11 +719,8 @@ const SignupScreen = () => {
             )}
           </>
         )}
-     
       </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 };
 export default SignupScreen;
-
-
