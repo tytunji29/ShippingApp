@@ -36,7 +36,24 @@ const globalStyles = StyleSheet.create({
     marginVertical: 8,
     flex: 1,
     alignItems: "center",
-  },
+  },header: {
+  fontSize: 20,
+  fontWeight: '600',
+  marginBottom: 16,
+  color: '#0E1E3F', // or your primary color
+},
+
+  buttonOutline: {
+  backgroundColor: 'transparent',
+  borderWidth: 1,
+  borderColor: '#0E1E3F', // or your primary/navy color
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
   buttonText: { color: "#fff", fontWeight: "bold" },
   imagePreview: { width: 100, height: 100, borderRadius: 8, marginTop: 8 },
   stepTitle: {
@@ -93,12 +110,16 @@ const globalStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === "ios" ? 14 : 10,
   },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
-    color: "#000",
-  },
+ input: {
+  borderWidth: 1,
+  borderColor: "#ccc",
+  borderRadius: 8,
+  paddingVertical: 8, // reduced from 12
+  paddingHorizontal: 12,
+  fontSize: 14, // smaller text size
+  marginBottom: 12,
+},
+
   signupButton: {
     backgroundColor: "#0b1b36",
     padding: 15,

@@ -21,26 +21,6 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-//     if (!email || !password) return alert("Please fill all fields");
-
-//     const result = await loginUser({ email, password });
-//     if (result) {
-    
-//       Toast.show({
-//   type: 'success',
-//   text1: `Welcome, ${result.fullName}`,
-// });
-//       navigation.replace("MainApp"); // Navigate to the main app screen
-//     }
-//     else {
-//       Toast.show({
-//         type: 'error',
-//         text1: 'Login failed',
-//         text2: state.error || 'Please check your credentials and try again.',
-//       });
-//     }
-//   };
-// 2. Update your handleLogin function to use the new response format
 const handleLogin = async () => { 
   if (!email || !password) {
     alert("Please fill all fields");

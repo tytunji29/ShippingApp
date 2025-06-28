@@ -121,8 +121,8 @@ export interface ShipmentDetails {
     deliveryDate: string;
     pickupLongitude: number;
     pickupLatitude: number;
-    // deliveryLongitude: number;
-    // deliveryLatitude: number;
+    deliveryLongitude: number;
+    deliveryLatitude: number;
   };
 }
 

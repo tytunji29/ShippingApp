@@ -3,4 +3,5 @@ export type RootStackParamList = {
   Signup: undefined;
   Dashboard: undefined;
   MainApp: undefined;
+   CreateShipment: undefined;
 };

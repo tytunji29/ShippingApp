@@ -547,12 +547,12 @@ const SignupScreen = () => {
                 {/* <TouchableOpacity onPress={() => pickImage("driverLicenseImage")} style={globalStyles.uploadButton}>
                   <Text>Select Driver License Image</Text>
                 </TouchableOpacity> */}
-                {formCompany.driverLicenseImage && (
+                {/* {formCompany.driverLicenseImage && (
                   <Image
                     source={{ uri: formCompany.driverLicenseImage.uri }}
                     style={globalStyles.imagePreview}
                   />
-                )}
+                )} */}
                 <TouchableOpacity
                   onPress={() => pickImage("photo")}
                   style={globalStyles.uploadButton}
