@@ -137,7 +137,6 @@ export default function CreateShipment() {
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      console.log(base64);
       return base64;
     } catch (error) {
       console.error("Error converting to base64:", error);
@@ -579,7 +578,6 @@ export default function CreateShipment() {
             <TouchableOpacity
               style={globalStyles.button}
               onPress={() => {
-                console.log("Submit:", formData);
                 handleSubmit();
               }}
             >

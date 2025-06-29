@@ -270,7 +270,7 @@ const SignupScreen = () => {
               onPress={() => { setActiveDateField("individual"); setShowDatePicker(true); }}
               style={[globalStyles.input, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}
             >
-              <Text>{form.dateOfBirth ? new Date(form.dateOfBirth).toDateString() : "Select date of birth"}</Text>
+              <Text>{form.dateOfBirth ? new Date(form.dateOfBirth).toISOString().slice(0, 10) : "Select date of birth"}</Text>
               <Ionicons name="calendar" size={20} color="#333" />
             </TouchableOpacity>
 
@@ -366,7 +366,7 @@ const SignupScreen = () => {
                   }}
                   style={globalStyles.input}
                 >
-                  <Text>{formCompany.dateOfBirth ? new Date(formCompany.dateOfBirth).toDateString() : "Select Date of Birth"}</Text>
+                  <Text>{formCompany.dateOfBirth ? new Date(formCompany.dateOfBirth).toISOString().slice(0, 10) : "Select Date of Birth"}</Text>
                   <Ionicons name="calendar" size={20} color="#333" />
                 </TouchableOpacity>
 

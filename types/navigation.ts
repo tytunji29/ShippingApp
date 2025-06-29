@@ -5,5 +5,6 @@ export type RootStackParamList = {
   MainApp: undefined;
    CreateShipment: undefined;
    MyShipments: undefined;
+   Profiles: undefined;
    AvailableShipmentScreen: undefined;
 };

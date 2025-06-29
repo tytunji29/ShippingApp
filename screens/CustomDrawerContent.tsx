@@ -34,16 +34,16 @@ export default function CustomDrawerContent(props) {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1 }}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
 
       <View style={styles.bottomContainer}>
-        <Image
+        {/* <Image
           source={{ uri: 'https://i.pravatar.cc/150' }} // Replace with dynamic user image if needed
           style={styles.avatar}
-        />
+        /> */}
         <TouchableOpacity onPress={handleSignOut} style={styles.logoutButton}>
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
@@ -55,7 +55,7 @@ export default function CustomDrawerContent(props) {
 const styles = StyleSheet.create({
   bottomContainer: {
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 80,
     borderTopWidth: 1,
     borderColor: '#ccc',
     paddingTop: 10,
