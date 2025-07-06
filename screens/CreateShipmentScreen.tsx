@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { APIURL } from "../context/Actions";
@@ -20,10 +10,11 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 import * as FileSystem from "expo-file-system";
-
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -366,8 +357,8 @@ export default function CreateShipment() {
           <Text style={globalStyles.header}>Step 2: Delivery Details</Text>
 
           {/* Pickup Address */}
-          <Text style={globalStyles.label}>Pickup Address</Text>
-          <InputField
+          {/* <Text style={globalStyles.label}>Pickup Address</Text> */}
+          {/* <InputField
             placeholder="Enter pickup address"
             value={formData.deliveryPickupRequest.pickUpAddress}
             onChangeText={(text) =>
@@ -381,11 +372,27 @@ export default function CreateShipment() {
             }
             label=""
             iconName={"map"}
+          /> */}
+          <AddressAutocomplete
+            label="Enter Pickup Address"
+            value={formData.deliveryPickupRequest.pickUpAddress}
+            onSelect={(selected) =>
+              setFormData((prev) => ({
+                ...prev,
+                deliveryPickupRequest: {
+                  ...prev.deliveryPickupRequest,
+                  pickUpAddress: selected.address,
+                  pickupLatitude: selected.latitude,
+                  pickupLongitude: selected.longitude,
+                },
+              }))
+            }
+            iconName={"map"}
           />
 
           {/* Delivery Address */}
-          <Text style={globalStyles.label}>Delivery Address</Text>
-          <InputField
+          {/* <Text style={globalStyles.label}>Delivery Address</Text> */}
+          {/* <InputField
             placeholder="Enter delivery address"
             value={formData.deliveryPickupRequest.deliveryAddress}
             onChangeText={(text) =>
@@ -399,8 +406,26 @@ export default function CreateShipment() {
             }
             label=""
             iconName={"map"}
+          /> */}
+
+          <AddressAutocomplete
+            label="Enter Delivery Address"
+            value={formData.deliveryPickupRequest.deliveryAddress}
+            onSelect={(selected) =>
+              setFormData((prev) => ({
+                ...prev,
+                deliveryPickupRequest: {
+                  ...prev.deliveryPickupRequest,
+                  deliveryAddress: selected.address,
+                  deliveryLatitude: selected.latitude,
+                  deliveryLongitude: selected.longitude,
+                },
+              }))
+            }
+            iconName={"map"}
           />
-          {/* Delivery Address */}
+
+          {/* Note To Driver */}
           <Text style={globalStyles.label}>Note To Driver</Text>
           <InputField
             placeholder="Note To Drive"

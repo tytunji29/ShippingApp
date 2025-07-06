@@ -5,14 +5,15 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import LoginScreen from "./screens/LoginScreen";
-import SignupScreen from "./screens/SignUpScreen";
 import DashboardScreen from "./screens/DashboardScreen";
 import CreateShipmentScreen from "./screens/CreateShipmentScreen";
 import { AppProvider } from "./context/AppContext";
 import { RootStackParamList } from "./types/navigation";
 import ShipmentsTabs from "./screens/ShipmentsTabs";
-import CustomDrawerContent from "./screens/CustomDrawerContent";
-import ProfileAvatar from "./screens/ProfileAvatar";
+import CustomDrawerContent from "./components/CustomDrawerContent";
+import ProfileAvatar from "./components/ProfileAvatar";
+import SelectOnMapScreen from "./screens/SelectOnMapScreen";
+import SignupScreen from "./screens/SignUpScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -67,6 +68,11 @@ export default function App() {
             headerRight: () => <ProfileAvatar />,
           }}
         >
+          <Stack.Screen
+            name="SelectOnMapScreen"
+            component={SelectOnMapScreen}
+            options={{ title: "Select Location on Map" }}
+          />
           <Stack.Screen
             name="Login"
             component={LoginScreen}
