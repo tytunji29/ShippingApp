@@ -6,6 +6,7 @@ export type RootStackParamList = {
    CreateShipment: undefined;
    MyShipments: undefined;
    Profiles: undefined;
+   DriverRating: undefined;
    SelectOnMapScreen: {
   onLocationSelected: (location: { address: string; latitude: number; longitude: number }) => void;
 };

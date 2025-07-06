@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -33,7 +32,7 @@ const MyShipmentsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
-const pageSize = 10; 
+  const pageSize = 10;
 
   const { state } = useAppContext();
   const fullName = state?.user?.fullName || "Guest";
@@ -45,7 +44,7 @@ const pageSize = 10;
       const token = await AsyncStorage.getItem("vubids_token");
       const currentPage = reset ? 1 : page;
       const url = `${APIURL}/Shipments/get-all-shipment-landingpaginated?page=${currentPage}&pageSize=${pageSize}&source=2`;
-      
+
       const res = await axios.get(`${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -58,7 +57,8 @@ const pageSize = 10;
         if (fetchedData.length < pageSize) {
           setHasMore(false);
         }
-      }}catch {
+      }
+    } catch {
       Toast.show({ type: "error", text1: "Failed to fetch shipments" });
     } finally {
       setLoading(false);
@@ -104,14 +104,34 @@ const pageSize = 10;
     }
   };
 
-const renderShipment = ({ item: shipment }) => {
-  if (mainUser === "Yes") {
-    // COMPANY: show only bidded shipments
-    if (shipment.asBidded === true || shipment.asBidded === "Yes") {
-      const isBidEnded =
-        shipment.status !== "In-Transit" &&
-        shipment.transporterId?.toLowerCase() !== fullName?.toLowerCase();
+  const renderShipment = ({ item: shipment }) => {
+    if (mainUser === "Yes") {
+      // COMPANY: show only bidded shipments
+      if (shipment.asBidded === true || shipment.asBidded === "Yes") {
+        const isBidEnded =
+          shipment.status !== "In-Transit" &&
+          shipment.transporterId?.toLowerCase() !== fullName?.toLowerCase();
 
+        return (
+          <View style={styles.card}>
+            <Text style={styles.title}>{shipment.item?.name}</Text>
+            <Text>From: {shipment.from}</Text>
+            <Text>To: {shipment.to}</Text>
+            <Text>Quote: {formatNaira(shipment.quote)}</Text>
+            <Text>Status: {shipment.status}</Text>
+            <Button
+              title={isBidEnded ? "Bid Ended" : "Already Bidded"}
+              disabled={true}
+              color={isBidEnded ? "red" : "orange"}
+            />
+          </View>
+        );
+      } else {
+        return null; // skip unbidded shipments for company
+      }
+    } else {
+      // CREATOR: show all shipments with bidders modal
+      const isAccepted = shipment.status === "Accepted";
       return (
         <View style={styles.card}>
           <Text style={styles.title}>{shipment.item?.name}</Text>
@@ -119,43 +139,22 @@ const renderShipment = ({ item: shipment }) => {
           <Text>To: {shipment.to}</Text>
           <Text>Quote: {formatNaira(shipment.quote)}</Text>
           <Text>Status: {shipment.status}</Text>
+
           <Button
-            title={isBidEnded ? "Bid Ended" : "Already Bidded"}
-            disabled={true}
-            color={isBidEnded ? "red" : "orange"}
+            title={isAccepted ? "Accepted" : "View Bidders"}
+            color={isAccepted ? "green" : "blue"}
+            disabled={isAccepted}
+            onPress={() => {
+              if (!isAccepted) {
+                setSelectedShipment(shipment);
+                setShowBiddersModal(true);
+              }
+            }}
           />
         </View>
       );
-    } else {
-      return null; // skip unbidded shipments for company
     }
-  } else {
-    // CREATOR: show all shipments with bidders modal
-    const isAccepted = shipment.status === "Accepted";
-    return (
-      <View style={styles.card}>
-        <Text style={styles.title}>{shipment.item?.name}</Text>
-        <Text>From: {shipment.from}</Text>
-        <Text>To: {shipment.to}</Text>
-        <Text>Quote: {formatNaira(shipment.quote)}</Text>
-        <Text>Status: {shipment.status}</Text>
-
-        <Button
-          title={isAccepted ? "Accepted" : "View Bidders"}
-          color={isAccepted ? "green" : "blue"}
-          disabled={isAccepted}
-          onPress={() => {
-            if (!isAccepted) {
-              setSelectedShipment(shipment);
-              setShowBiddersModal(true);
-            }
-          }}
-        />
-      </View>
-    );
-  }
-};
-
+  };
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -188,6 +187,7 @@ const renderShipment = ({ item: shipment }) => {
                 <View key={q.quoteId} style={styles.bidCard}>
                   <Text>Amount: {formatNaira(q.amount)}</Text>
                   <Text>Bidder: {q.transporterId}</Text>
+                  <Text>Rating: {q.transporterId}</Text>
                   <Button
                     title="Accept Bid"
                     onPress={() => handleAcceptBid(q.quoteId)}
