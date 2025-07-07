@@ -19,6 +19,7 @@ export default function DriverRatingScreen() {
   const [mainUser, setMainUser] = useState<{
     name: string;
     riderId: string;
+    shipmentId: string;
   } | null>(null);
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,8 @@ export default function DriverRatingScreen() {
       const data = res.data.data;
       setMainUser({
         name: data.transporter,
-        riderId: data.shipmentId,
+        riderId: data.transId,
+        shipmentId: data.shipmentId,
       });
     } catch (error) {
       console.error(error);
@@ -70,7 +72,8 @@ export default function DriverRatingScreen() {
         body: JSON.stringify({
           rating: rating.toString(),
           riderId: mainUser.name,
-          shipmentId: mainUser.riderId, // send riderId to backend
+          shipmentId: mainUser.shipmentId, 
+          transId:mainUser.riderId,
         }),
       });
       const responseData = await response.json();

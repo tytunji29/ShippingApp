@@ -44,12 +44,13 @@ const MyShipmentsScreen = () => {
       const token = await AsyncStorage.getItem("vubids_token");
       const currentPage = reset ? 1 : page;
       const url = `${APIURL}/Shipments/get-all-shipment-landingpaginated?page=${currentPage}&pageSize=${pageSize}&source=2`;
-
+      console.log("Fetching shipments from:", token);
       const res = await axios.get(`${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.status) {
         const fetchedData = res.data.data;
+
         setShipments((prev) =>
           reset ? fetchedData : [...prev, ...fetchedData]
         );
@@ -187,7 +188,28 @@ const MyShipmentsScreen = () => {
                 <View key={q.quoteId} style={styles.bidCard}>
                   <Text>Amount: {formatNaira(q.amount)}</Text>
                   <Text>Bidder: {q.transporterId}</Text>
-                  <Text>Rating: {q.transporterId}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                      {q.riderRating}
+                    </Text>
+                    <Text
+                      style={{ fontSize: 16, color: "#f5b50a", marginLeft: 4 }}
+                    >
+                      ★
+                    </Text>
+                    <Text
+                      style={{ fontSize: 12, color: "#888", marginLeft: 4 }}
+                    >
+                      {`(rated by ${q.riderRatingCount} people)`}
+                    </Text>
+                  </View>
+
                   <Button
                     title="Accept Bid"
                     onPress={() => handleAcceptBid(q.quoteId)}
