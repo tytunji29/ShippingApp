@@ -44,7 +44,6 @@ const MyShipmentsScreen = () => {
       const token = await AsyncStorage.getItem("vubids_token");
       const currentPage = reset ? 1 : page;
       const url = `${APIURL}/Shipments/get-all-shipment-landingpaginated?page=${currentPage}&pageSize=${pageSize}&source=2`;
-      console.log("Fetching shipments from:", token);
       const res = await axios.get(`${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
